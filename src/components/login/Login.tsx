@@ -1,10 +1,8 @@
-import { useState, useReducer } from "react";
+import { useState, useReducer, useEffect, useContext } from "react";
+import AuthContext from "../store/AuthProvider";
 import Card from "../ui/Card";
 import classes from "./Login.module.css";
 
-interface Props {
-  onLogin(email: string, password: string): void;
-}
 
 type EmailState = {
   value: string;
@@ -44,9 +42,8 @@ const passwordReducer = (
   return { value: "", isValid: false };
 };
 
-const Login: React.FC<Props> = ({ onLogin }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const Login: React.FC = () => {
+  const authContext = useContext(AuthContext);
   const [emailState, dispathEmail] = useReducer(emailReducer, {
     value: "",
     isValid: undefined,
@@ -55,32 +52,43 @@ const Login: React.FC<Props> = ({ onLogin }) => {
     value: "",
     isValid: undefined,
   });
+  const [isFormValid, setIsFormValid] = useState(false);
+  const {isValid: emailValid} = emailState;
+  const {isValid: passwordValid} = passwordState;
+  useEffect(() => {
+    const interval = setTimeout(() => {
+      setIsFormValid(
+        (emailValid ?? false) && (passwordValid ?? false)
+      );
+    }, 500);
+
+    return () => {
+      clearInterval(interval);
+    }
+
+  }, [emailValid, passwordValid])
 
   const emailChangeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(event.target.value);
-    dispathEmail({ type: "USER_INPUT", value: event.target.value });
+    dispathEmail({ type: "USER_INPUT", value: event.target.value.trim() });
   };
 
-  const emailBlurHandler = (event: React.FocusEvent<HTMLInputElement>) => {
-    console.log("blur");
+  const emailBlurHandler = () => {
     dispathEmail({ type: "INPUT_BLUR" });
   };
 
   const passwordChangeHandler = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setPassword(event.target.value);
-    dispathPassword({ type: "USER_INPUT", value: event.target.value });
+    dispathPassword({ type: "USER_INPUT", value: event.target.value.trim() });
   };
 
-  const passwordBlurHandler = (event: React.FocusEvent<HTMLInputElement>) => {
-    console.log("blur");
+  const passwordBlurHandler = () => {
     dispathPassword({ type: "INPUT_BLUR" });
   };
 
   const submitHandler = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onLogin(emailState.value, password);
+    authContext.loginHandler(emailState.value, passwordState.value);
   };
 
   return (
@@ -110,7 +118,9 @@ const Login: React.FC<Props> = ({ onLogin }) => {
             }`}
           />
         </div>
-        <button type="submit">Log in</button>
+        <button type="submit" disabled={!isFormValid}>
+          Log in
+        </button>
       </form>
     </Card>
   );
