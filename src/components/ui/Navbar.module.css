@@ -1,0 +1,16 @@
+.navBar {
+    background-color: blueviolet;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    width: 100%;
+    height: 3.5rem;
+}
+
+.navBar span {
+    font-weight: bold;
+    font-size: x-large;
+    color: #f9f9f9;
+}
